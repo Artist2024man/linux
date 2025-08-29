@@ -1,0 +1,61 @@
+tproxy-port: 17892
+allow-lan: true
+bind-address: 0.0.0.0
+mode: rule
+log-level: info
+
+tun:
+  enable: true
+  dns-hijack:
+    - any:53
+    - tcp://any:53
+  stack: system
+  device: utun0
+  auto-route: true
+  auto-detect-interface: true
+  inet4-route-include-address:
+    - 10.0.3.0/24
+  inet4-route-exclude-address:
+    - 0.0.0.0/8
+    - 127.0.0.0/8
+    - 169.254.0.0/16
+    - 172.16.0.0/12
+    - 192.168.0.0/16
+    - 224.0.0.0/4
+    - 240.0.0.0/4
+    - 255.255.255.255/32
+  mtu: 9000
+dns:
+  enable: true
+  default-nameserver:
+    - 114.114.114.114
+    - 8.8.8.8
+    - 8.8.4.4
+  nameserver:
+    - 114.114.114.114
+    - 8.8.8.8
+    - 8.8.4.4
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+
+proxies:
+  - name: "vpcNet"
+    type: "socks5" # 不建议使用socks5,建议使用vmess等其他更高效的协议
+    server: "proxyIp"
+    port: proxyPort
+    udp: true
+    username: "proxyUsername"
+    password: "proxyPassword"
+    timeout: 30
+    max-conns: 100
+proxy-groups:
+  - name: "vpcGroup"
+    type: select
+    proxies:
+      - vpcNet
+rules:
+  - "IP-CIDR,120.76.158.134/32,DIRECT"
+  - "DOMAIN-SUFFIX,baidu.com"
+  - "DOMAIN-SUFFIX,你想要放行的域名后缀1" # 可以新增任何你想要放行不走代理的域名后缀，比如你服务器内须要通信的域名，。
+  - "DOMAIN-SUFFIX,你想要放行的域名后缀2"
+  - "MATCH,vpcGroup"
